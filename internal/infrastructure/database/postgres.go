@@ -11,8 +11,8 @@ import (
 )
 
 func InitDB(cfg *config.Config) *gorm.DB {
-	// Membuka koneksi ke Postgres menggunakan GORM
-	// Kita set logger ke Info agar bisa melihat SQL Query yang dieksekusi selama masa development
+	// Open connection to Postgres using GORM
+	// We set logger to Info to see executed SQL queries during development
 	db, err := gorm.Open(postgres.Open(cfg.DBDSN), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
@@ -21,17 +21,17 @@ func InitDB(cfg *config.Config) *gorm.DB {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
-	// Mengatur Connection Pool
+	// Configure Connection Pool
 	sqlDB, err := db.DB()
 	if err != nil {
 		log.Fatalf("Failed to get generic database interface: %v", err)
 	}
 
-	// SetMaxIdleConns menetapkan jumlah maksimum koneksi dalam pool koneksi menganggur.
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
 	sqlDB.SetMaxIdleConns(10)
-	// SetMaxOpenConns menetapkan jumlah maksimum koneksi terbuka ke database.
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	sqlDB.SetMaxOpenConns(100)
-	// SetConnMaxLifetime menetapkan jumlah waktu maksimum koneksi dapat digunakan kembali.
+	// SetConnMaxLifetime sets the maximum amount of time a connection may be reused.
 	sqlDB.SetConnMaxLifetime(time.Hour)
 
 	log.Println("Database connection successfully configured.")

@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/dionazani/moviego-mrs-backend/internal/config"
+	contextsignup "github.com/dionazani/moviego-mrs-backend/internal/context/sign-up"
+	"github.com/dionazani/moviego-mrs-backend/internal/infrastructure/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -26,30 +28,16 @@ func NewRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		})
 	})
 
-	// Placeholder Route Groups for Contexts
+	// Initialize Dependencies
+	personRepo := repository.NewAppPersonRepository(db)
+	signUpService := contextsignup.NewSignUpService(personRepo)
+	signUpHandler := contextsignup.NewSignUpHandler(signUpService)
+
+	// API Route Group
 	api := r.Group("/api")
 	{
-		// Authentication Context endpoints
-		auth := api.Group("/auth")
-		{
-			auth.POST("/register", func(c *gin.Context) {
-				c.JSON(http.StatusNotImplemented, gin.H{"message": "Register endpoint placeholder"})
-			})
-			auth.POST("/login", func(c *gin.Context) {
-				c.JSON(http.StatusNotImplemented, gin.H{"message": "Login endpoint placeholder"})
-			})
-			auth.POST("/activate", func(c *gin.Context) {
-				c.JSON(http.StatusNotImplemented, gin.H{"message": "Activation endpoint placeholder"})
-			})
-		}
-
-		// Reservation Context endpoints
-		reservations := api.Group("/reservations")
-		{
-			reservations.POST("/reserve", func(c *gin.Context) {
-				c.JSON(http.StatusNotImplemented, gin.H{"message": "Reserve seat endpoint placeholder"})
-			})
-		}
+		api.POST("/sign-up/v1/", signUpHandler.SignUp)
+		api.GET("/sign-up/v1/:id", signUpHandler.LoadById)
 	}
 
 	return r

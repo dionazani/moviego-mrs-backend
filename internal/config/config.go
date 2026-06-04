@@ -13,12 +13,12 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	// Load file .env jika ada
+	// Load .env file if it exists
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: No .env file found, using system environment variables")
 	}
 
-	// Sesuai dengan format DDL PostgreSQL untuk GORM
+	// Match PostgreSQL DSN format for GORM
 	dsn := "host=" + os.Getenv("DB_HOST") +
 		" user=" + os.Getenv("DB_USER") +
 		" password=" + os.Getenv("DB_PASSWORD") +
