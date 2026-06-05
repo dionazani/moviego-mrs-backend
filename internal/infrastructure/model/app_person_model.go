@@ -1,4 +1,4 @@
-package model
+package infrastructuremodel
 
 import (
 	"time"

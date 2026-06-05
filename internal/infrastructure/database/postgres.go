@@ -1,6 +1,7 @@
-package database
+package infrastructuredatabase
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -37,3 +38,21 @@ func InitDB(cfg *config.Config) *gorm.DB {
 	log.Println("Database connection successfully configured.")
 	return db
 }
+
+type contextKey struct{}
+
+var txKey = contextKey{}
+
+// WithTransaction returns a new context containing the GORM transaction db instance.
+func WithTransaction(ctx context.Context, tx *gorm.DB) context.Context {
+	return context.WithValue(ctx, txKey, tx)
+}
+
+// GetTx retrieves the GORM transaction db instance from the context if it exists.
+func GetTx(ctx context.Context) *gorm.DB {
+	if tx, ok := ctx.Value(txKey).(*gorm.DB); ok {
+		return tx
+	}
+	return nil
+}
+

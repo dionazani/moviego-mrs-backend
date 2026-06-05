@@ -1,7 +1,8 @@
-package repository
+package infrastructurerepository
 
 import (
 	"context"
+	"github.com/dionazani/moviego-mrs-backend/internal/infrastructure/database"
 	"github.com/dionazani/moviego-mrs-backend/internal/infrastructure/model"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,12 +19,12 @@ type FindAllParams struct {
 
 // AppPersonRepository defines the contract for AppPerson database operations.
 type AppPersonRepository interface {
-	Insert(ctx context.Context, person *model.AppPerson) error
-	Update(ctx context.Context, person *model.AppPerson) error
-	FindAll(ctx context.Context, params FindAllParams) ([]model.AppPerson, int64, error)
-	FindById(ctx context.Context, id uuid.UUID) (*model.AppPerson, error)
-	FindByFullname(ctx context.Context, fullname string) ([]model.AppPerson, error)
-	FindByEmail(ctx context.Context, email string) (*model.AppPerson, error)
+	Insert(ctx context.Context, person *infrastructuremodel.AppPerson) error
+	Update(ctx context.Context, person *infrastructuremodel.AppPerson) error
+	FindAll(ctx context.Context, params FindAllParams) ([]infrastructuremodel.AppPerson, int64, error)
+	FindById(ctx context.Context, id uuid.UUID) (*infrastructuremodel.AppPerson, error)
+	FindByFullname(ctx context.Context, fullname string) ([]infrastructuremodel.AppPerson, error)
+	FindByEmail(ctx context.Context, email string) (*infrastructuremodel.AppPerson, error)
 }
 
 type appPersonRepositoryImpl struct {
@@ -36,22 +37,30 @@ func NewAppPersonRepository(db *gorm.DB) AppPersonRepository {
 }
 
 // Insert saves a new AppPerson record into the database.
-func (r *appPersonRepositoryImpl) Insert(ctx context.Context, person *model.AppPerson) error {
-	return r.db.WithContext(ctx).Omit("UpdatedAt").Create(person).Error
+func (r *appPersonRepositoryImpl) Insert(ctx context.Context, person *infrastructuremodel.AppPerson) error {
+	db := r.db
+	if tx := infrastructuredatabase.GetTx(ctx); tx != nil {
+		db = tx
+	}
+	return db.WithContext(ctx).Omit("UpdatedAt").Create(person).Error
 }
 
 // Update modifies an existing AppPerson record in the database.
-func (r *appPersonRepositoryImpl) Update(ctx context.Context, person *model.AppPerson) error {
-	return r.db.WithContext(ctx).Save(person).Error
+func (r *appPersonRepositoryImpl) Update(ctx context.Context, person *infrastructuremodel.AppPerson) error {
+	db := r.db
+	if tx := infrastructuredatabase.GetTx(ctx); tx != nil {
+		db = tx
+	}
+	return db.WithContext(ctx).Save(person).Error
 }
 
 // FindAll retrieves AppPerson records matching the specified filters and pagination options.
 // It also returns the total count of records matching the filters.
-func (r *appPersonRepositoryImpl) FindAll(ctx context.Context, params FindAllParams) ([]model.AppPerson, int64, error) {
-	var people []model.AppPerson
+func (r *appPersonRepositoryImpl) FindAll(ctx context.Context, params FindAllParams) ([]infrastructuremodel.AppPerson, int64, error) {
+	var people []infrastructuremodel.AppPerson
 	var total int64
 
-	db := r.db.WithContext(ctx).Model(&model.AppPerson{})
+	db := r.db.WithContext(ctx).Model(&infrastructuremodel.AppPerson{})
 
 	// Apply WHERE filters if provided
 	if params.Fullname != "" {
@@ -89,8 +98,8 @@ func (r *appPersonRepositoryImpl) FindAll(ctx context.Context, params FindAllPar
 }
 
 // FindById retrieves a single AppPerson record by its UUID.
-func (r *appPersonRepositoryImpl) FindById(ctx context.Context, id uuid.UUID) (*model.AppPerson, error) {
-	var person model.AppPerson
+func (r *appPersonRepositoryImpl) FindById(ctx context.Context, id uuid.UUID) (*infrastructuremodel.AppPerson, error) {
+	var person infrastructuremodel.AppPerson
 	if err := r.db.WithContext(ctx).First(&person, "id = ?", id).Error; err != nil {
 		return nil, err
 	}
@@ -98,8 +107,8 @@ func (r *appPersonRepositoryImpl) FindById(ctx context.Context, id uuid.UUID) (*
 }
 
 // FindByFullname retrieves AppPerson records matching the exact fullname.
-func (r *appPersonRepositoryImpl) FindByFullname(ctx context.Context, fullname string) ([]model.AppPerson, error) {
-	var people []model.AppPerson
+func (r *appPersonRepositoryImpl) FindByFullname(ctx context.Context, fullname string) ([]infrastructuremodel.AppPerson, error) {
+	var people []infrastructuremodel.AppPerson
 	if err := r.db.WithContext(ctx).Where("fullname = ?", fullname).Find(&people).Error; err != nil {
 		return nil, err
 	}
@@ -107,8 +116,8 @@ func (r *appPersonRepositoryImpl) FindByFullname(ctx context.Context, fullname s
 }
 
 // FindByEmail retrieves a single AppPerson record matching the exact email.
-func (r *appPersonRepositoryImpl) FindByEmail(ctx context.Context, email string) (*model.AppPerson, error) {
-	var person model.AppPerson
+func (r *appPersonRepositoryImpl) FindByEmail(ctx context.Context, email string) (*infrastructuremodel.AppPerson, error) {
+	var person infrastructuremodel.AppPerson
 	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&person).Error; err != nil {
 		return nil, err
 	}

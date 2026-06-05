@@ -29,8 +29,9 @@ func NewRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	})
 
 	// Initialize Dependencies
-	personRepo := repository.NewAppPersonRepository(db)
-	signUpService := contextsignup.NewSignUpService(personRepo)
+	personRepo := infrastructurerepository.NewAppPersonRepository(db)
+	userRepo := infrastructurerepository.NewAppUserRepository(db)
+	signUpService := contextsignup.NewSignUpService(db, personRepo, userRepo, cfg.MasterUserRoleRegular)
 	signUpHandler := contextsignup.NewSignUpHandler(signUpService)
 
 	// API Route Group

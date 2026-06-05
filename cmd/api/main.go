@@ -23,7 +23,7 @@ func main() {
 	cfg := config.LoadConfig()
 
 	// 2. Initialize Database (GORM)
-	db := database.InitDB(cfg)
+	db := infrastructuredatabase.InitDB(cfg)
 
 	// Verify database connection using standard ping
 	sqlDB, err := db.DB()

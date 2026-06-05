@@ -8,8 +8,10 @@ import (
 )
 
 type Config struct {
-	DBDSN      string
-	ServerPort string
+	DBDSN                 string
+	ServerPort            string
+	MasterUserRoleRegular string
+	MasterUserRoleAdmin   string
 }
 
 func LoadConfig() *Config {
@@ -33,7 +35,9 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DBDSN:      dsn,
-		ServerPort: port,
+		DBDSN:                 dsn,
+		ServerPort:            port,
+		MasterUserRoleRegular: os.Getenv("MASTER_USER_ROLE_REGULAR"),
+		MasterUserRoleAdmin:   os.Getenv("MASTER_USER_ROLE_ADMIN"),
 	}
 }

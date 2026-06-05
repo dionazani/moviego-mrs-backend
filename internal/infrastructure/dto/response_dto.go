@@ -1,4 +1,4 @@
-package dtos
+package infrastructuredto
 
 type Response struct {
 	Timestamp       string      `json:"timestamp"`
