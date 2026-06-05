@@ -2,10 +2,10 @@ package contextsignup
 
 // SignUpDTO represents the request payload for the sign-up API.
 type SignUpDTO struct {
-	Fullname             string `json:"fullname"`
-	Gender               string `json:"gender"`
-	Email                string `json:"email"`
-	MobilePhone          string `json:"mobilePhone"`
-	Password             string `json:"password"`
-	PasswordConfirmation string `json:"passwordConfirmation"`
+	Fullname             string `json:"fullname" binding:"required"`
+	Gender               string `json:"gender" binding:"required"`
+	Email                string `json:"email" binding:"required,email"`
+	MobilePhone          string `json:"mobilePhone" binding:"required"`
+	Password             string `json:"password" binding:"required"`
+	PasswordConfirmation string `json:"passwordConfirmation" binding:"required,eqfield=Password"`
 }

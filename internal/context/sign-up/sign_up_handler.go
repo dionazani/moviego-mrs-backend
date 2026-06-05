@@ -25,9 +25,10 @@ func NewSignUpHandler(signUpService SignUpService) *SignUpHandler {
 func (h *SignUpHandler) SignUp(c *gin.Context) {
 	var req SignUpDTO
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusInternalServerError, dto.Response{
+		c.JSON(http.StatusBadRequest, dto.Response{
 			Timestamp:       time.Now().Format(time.RFC3339),
-			ResponseCode:    http.StatusInternalServerError,
+			ResponseStatus:  http.StatusBadRequest,
+			ResponseCode:    http.StatusBadRequest,
 			ResponseMessage: "Invalid request payload: " + err.Error(),
 			Data:            nil,
 		})

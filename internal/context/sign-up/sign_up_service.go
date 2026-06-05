@@ -45,17 +45,6 @@ func NewSignUpService(
 
 // AddNew maps the SignUpDTO to AppPerson and AppUser models and calls the repository's Insert functions inside a transaction.
 func (s *signUpServiceImpl) AddNew(ctx context.Context, dto SignUpDTO) (infrastructuredto.Response, error) {
-	// 1. Validate Password and Confirmation matching
-	if dto.Password != dto.PasswordConfirmation {
-		return infrastructuredto.Response{
-			Timestamp:       time.Now().Format(time.RFC3339),
-			ResponseStatus:  http.StatusBadRequest,
-			ResponseCode:    http.StatusBadRequest,
-			ResponseMessage: "Password and password confirmation do not match",
-			Data:            nil,
-		}, nil
-	}
-
 	signUpFrom := "WEB" // Defaulting to web sign-up
 	loc := time.FixedZone("GMT+7", 7*60*60)
 	now := time.Now().In(loc)
@@ -97,6 +86,36 @@ func (s *signUpServiceImpl) AddNew(ctx context.Context, dto SignUpDTO) (infrastr
 		CreatedAt:              now,
 	}
 
+	// 5.1 Check if Email already exists
+	existingEmail, err := s.appPersonRepository.FindByEmail(ctx, dto.Email)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return infrastructuredto.Response{}, err
+	}
+	if existingEmail != nil {
+		return infrastructuredto.Response{
+			Timestamp:       time.Now().Format(time.RFC3339),
+			ResponseStatus:  http.StatusConflict,
+			ResponseCode:    http.StatusConflict,
+			ResponseMessage: "Email is already registered",
+			Data:            nil,
+		}, nil
+	}
+
+	// 5.2 Check if MobilePhone already exists
+	existingPhone, err := s.appPersonRepository.FindByMobilePhone(ctx, dto.MobilePhone)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return infrastructuredto.Response{}, err
+	}
+	if existingPhone != nil {
+		return infrastructuredto.Response{
+			Timestamp:       time.Now().Format(time.RFC3339),
+			ResponseStatus:  http.StatusConflict,
+			ResponseCode:    http.StatusConflict,
+			ResponseMessage: "Mobile phone number is already registered",
+			Data:            nil,
+		}, nil
+	}
+
 	// 6. Execute inserts within GORM transaction
 	err = s.db.Transaction(func(tx *gorm.DB) error {
 		ctxTx := infrastructuredatabase.WithTransaction(ctx, tx)
@@ -122,7 +141,7 @@ func (s *signUpServiceImpl) AddNew(ctx context.Context, dto SignUpDTO) (infrastr
 		ResponseCode:    http.StatusCreated,
 		ResponseMessage: "User signed up successfully",
 		Data: map[string]interface{}{
-			"appUserId": person.ID,
+			"appPersonId": person.ID,
 		},
 	}, nil
 }

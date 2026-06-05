@@ -25,6 +25,7 @@ type AppPersonRepository interface {
 	FindById(ctx context.Context, id uuid.UUID) (*infrastructuremodel.AppPerson, error)
 	FindByFullname(ctx context.Context, fullname string) ([]infrastructuremodel.AppPerson, error)
 	FindByEmail(ctx context.Context, email string) (*infrastructuremodel.AppPerson, error)
+	FindByMobilePhone(ctx context.Context, mobilePhone string) (*infrastructuremodel.AppPerson, error)
 }
 
 type appPersonRepositoryImpl struct {
@@ -119,6 +120,15 @@ func (r *appPersonRepositoryImpl) FindByFullname(ctx context.Context, fullname s
 func (r *appPersonRepositoryImpl) FindByEmail(ctx context.Context, email string) (*infrastructuremodel.AppPerson, error) {
 	var person infrastructuremodel.AppPerson
 	if err := r.db.WithContext(ctx).Where("email = ?", email).First(&person).Error; err != nil {
+		return nil, err
+	}
+	return &person, nil
+}
+
+// FindByMobilePhone retrieves a single AppPerson record matching the exact mobile phone.
+func (r *appPersonRepositoryImpl) FindByMobilePhone(ctx context.Context, mobilePhone string) (*infrastructuremodel.AppPerson, error) {
+	var person infrastructuremodel.AppPerson
+	if err := r.db.WithContext(ctx).Where("mobile_phone = ?", mobilePhone).First(&person).Error; err != nil {
 		return nil, err
 	}
 	return &person, nil
