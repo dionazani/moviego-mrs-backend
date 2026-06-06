@@ -3,6 +3,7 @@ package config
 import (
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 )
@@ -12,6 +13,8 @@ type Config struct {
 	ServerPort            string
 	MasterUserRoleRegular string
 	MasterUserRoleAdmin   string
+	JwtSecret             string
+	LoginLockoutDuration  time.Duration
 }
 
 func LoadConfig() *Config {
@@ -34,10 +37,22 @@ func LoadConfig() *Config {
 		port = "8080"
 	}
 
+	// Parse login lockout duration from env, defaulting to 10 minutes.
+	lockoutDuration := 10 * time.Minute
+	if raw := os.Getenv("USER_LOGIN_LOCKOUT_DURATION"); raw != "" {
+		if d, err := time.ParseDuration(raw); err == nil {
+			lockoutDuration = d
+		} else {
+			log.Printf("Warning: invalid USER_LOGIN_LOCKOUT_DURATION value '%s', using default 10m", raw)
+		}
+	}
+
 	return &Config{
 		DBDSN:                 dsn,
 		ServerPort:            port,
 		MasterUserRoleRegular: os.Getenv("MASTER_USER_ROLE_REGULAR"),
 		MasterUserRoleAdmin:   os.Getenv("MASTER_USER_ROLE_ADMIN"),
+		JwtSecret:             os.Getenv("JWT_SECRET"),
+		LoginLockoutDuration:  lockoutDuration,
 	}
 }

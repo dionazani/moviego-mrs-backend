@@ -33,25 +33,21 @@ CREATE TABLE app_user (
     next_change_password_date DATE DEFAULT CURRENT_DATE + INTERVAL '30 days',
     is_locked int DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    failed_attempt_count INT DEFAULT 0,
+    lockout_until DATETIME DEFAULT null,
     FOREIGN KEY (app_person_id) REFERENCES app_person (id),
     FOREIGN KEY (mst_user_role_id) REFERENCES mst_user_role (id)
 );
 
-create table app_user_activate (
-	id UUID PRIMARY KEY,
-	app_person_id UUID NOT NULL UNIQUE, -- Link to app_person,
-	activate_by CHAR(3), -- web (WEB), mobile (MBL)
-	activate_at TIMESTAMP,
-	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-	FOREIGN KEY (app_person_id) REFERENCES app_person (id)
-);
+-- alter table app_user add failed_attempt_count INT DEFAULT 0;
+-- alter table app_user add lockout_until TIMESTAMP DEFAULT NULL;
 
 -- drop table app_user_token;
 create table app_user_token (
 	id UUID primary key,
 	app_user_id UUID not null,
 	token_type varchar(25) default 'refresh',
-	token_user varchar(200) not null,
+	token_user varchar(500) not null,
 	expire_at TIMESTAMP not null,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	foreign key (app_user_id) references app_user (id),

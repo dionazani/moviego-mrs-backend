@@ -4,8 +4,9 @@ import (
 	"net/http"
 
 	"github.com/dionazani/moviego-mrs-backend/internal/config"
+	contextsignin "github.com/dionazani/moviego-mrs-backend/internal/context/sign-in"
 	contextsignup "github.com/dionazani/moviego-mrs-backend/internal/context/sign-up"
-	"github.com/dionazani/moviego-mrs-backend/internal/infrastructure/repository"
+	infrastructurerepository "github.com/dionazani/moviego-mrs-backend/internal/infrastructure/repository"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -28,17 +29,28 @@ func NewRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 		})
 	})
 
-	// Initialize Dependencies
+	// Initialize Repositories
 	personRepo := infrastructurerepository.NewAppPersonRepository(db)
 	userRepo := infrastructurerepository.NewAppUserRepository(db)
+	userTokenRepo := infrastructurerepository.NewAppUserTokenRepository(db)
+
+	// Initialize Services
 	signUpService := contextsignup.NewSignUpService(db, personRepo, userRepo, cfg.MasterUserRoleRegular)
+	signInService := contextsignin.NewSignInService(personRepo, userRepo, userTokenRepo, cfg.JwtSecret, cfg.LoginLockoutDuration)
+
+	// Initialize Handlers
 	signUpHandler := contextsignup.NewSignUpHandler(signUpService)
+	signInHandler := contextsignin.NewSignInHandler(signInService)
 
 	// API Route Group
 	api := r.Group("/api")
 	{
+		// Sign-Up endpoints
 		api.POST("/sign-up/v1/", signUpHandler.SignUp)
 		api.GET("/sign-up/v1/:id", signUpHandler.LoadById)
+
+		// Sign-In endpoint
+		api.POST("/sign-in/v1", signInHandler.SignIn)
 	}
 
 	return r
